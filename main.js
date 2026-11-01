@@ -36,7 +36,7 @@ app.on("child-process-gone", (_e, d) => log("child-process-gone", JSON.stringify
 function createWindow() {
   win = new BrowserWindow({
     width: 1100, height: 680, minWidth: 900, minHeight: 600,
-    frame: false, backgroundColor: "#0a0614", show: false,
+    frame: false, backgroundColor: "#0d0e10", show: false,
     icon: fs.existsSync(path.join(__dirname, "build", "icon.png"))
       ? path.join(__dirname, "build", "icon.png") : undefined,
     webPreferences: { preload: path.join(__dirname, "preload.js"), contextIsolation: true, nodeIntegration: false },

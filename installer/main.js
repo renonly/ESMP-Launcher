@@ -12,7 +12,7 @@ if (!app.requestSingleInstanceLock()) app.quit();
 function createWindow() {
   win = new BrowserWindow({
     width: 800, height: 480, resizable: false, maximizable: false, frame: false, show: false,
-    backgroundColor: "#0a0614", title: "Instalar ESMP",
+    backgroundColor: "#0d0e10", title: "Instalar ESMP",
     icon: path.join(__dirname, "build", "icon.png"),
     webPreferences: { preload: path.join(__dirname, "preload.js"), contextIsolation: true, nodeIntegration: false },
   });
