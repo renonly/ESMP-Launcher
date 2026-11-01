@@ -16,7 +16,7 @@ const defaults = () => ({
   height: 0,
   onLaunch: "minimize",   // minimize | keep | quit
   launchAtStartup: false,
-  accent: "#4ade80",
+  accent: "#c4b5fd",
   bgPath: "",             // imagem de fundo escolhida pelo jogador
   bgBlur: 6,
   bgDim: 55,

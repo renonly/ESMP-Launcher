@@ -1,5 +1,5 @@
 :root {
-  --accent: #4ade80; --accent-hover: #86efac; --accent-dark: #22c55e; --accent-rgb: 74,222,128; --on-accent: #06130a;
+  --accent: #c4b5fd; --accent-hover: #ddd6fe; --accent-dark: #a78bfa; --accent-rgb: 196,181,253; --on-accent: #17122b;
   --bg: #0d0e10; --glass: .8; --panel: rgba(22, 23, 26, var(--glass)); --panel2: rgba(255,255,255,.045);
   --line: rgba(255,255,255,.08); --text: #ececee; --muted: #9a9ca3; --danger: #f87171; --ok: #4ade80;
   --ease: cubic-bezier(.22,1,.36,1);
@@ -265,8 +265,3 @@ html.booting .app, html.booting .split { opacity: 0; }
 #grp-pack #s-sync-error:empty { display: none; }
 #grp-pack .danger-zone { margin-top: 6px; padding-top: 22px; gap: 14px; }
 
-/* ===== cor de destaque (Ajustes > Aparencia) ===== */
-.swatches { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 4px; }
-.swatches button { width: 28px; height: 28px; padding: 0; border-radius: 50%; border: 2px solid transparent; outline: 1px solid var(--line); outline-offset: 2px; }
-.swatches button.on { border-color: #fff; }
-.swatches button:hover { transform: scale(1.1); }

@@ -417,23 +417,11 @@ api.onUpdate(showUpdate);
 })();
 
 // ---------- aparência (guardada no localStorage) ----------
-const ACCENTS = [["#4ade80", "Verde"], ["#60a5fa", "Azul"], ["#22d3ee", "Ciano"], ["#fb923c", "Laranja"], ["#f472b6", "Rosa"], ["#a78bfa", "Roxo"], ["#e5e7eb", "Branco"]];
-const LOOK_DEFAULT = { aurora: false, particles: false, anim: true, compact: false, glass: 80, accent: "#4ade80" };
+const LOOK_DEFAULT = { aurora: false, particles: false, anim: true, compact: false, glass: 80 };
 let look = { ...LOOK_DEFAULT };
 try { Object.assign(look, JSON.parse(localStorage.getItem("look") || "{}")); } catch {}
-function applyAccent(hex) {
-  if (!/^#[0-9a-f]{6}$/i.test(hex)) hex = LOOK_DEFAULT.accent;
-  const c = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
-  const mix = (t, k) => "#" + c.map((v) => Math.round(v + (t - v) * k).toString(16).padStart(2, "0")).join("");
-  const lum = (0.299 * c[0] + 0.587 * c[1] + 0.114 * c[2]) / 255;
-  const r = document.documentElement.style;
-  r.setProperty("--accent", hex); r.setProperty("--accent-hover", mix(255, .35)); r.setProperty("--accent-dark", mix(0, .22));
-  r.setProperty("--accent-rgb", c.join(",")); r.setProperty("--on-accent", lum > .55 ? "#0b0c0e" : "#ffffff");
-  document.querySelectorAll("#swatches button").forEach((b) => b.classList.toggle("on", b.dataset.c === hex));
-}
 function applyLookUI() {
   const r = document.documentElement;
-  applyAccent(look.accent);
   r.style.setProperty("--glass", look.glass / 100);
   r.classList.toggle("no-aurora", !look.aurora);
   r.classList.toggle("no-particles", !look.particles);
@@ -448,10 +436,6 @@ $("s-aurora").onchange = (e) => setLook({ aurora: e.target.checked });
 $("s-particles").onchange = (e) => setLook({ particles: e.target.checked });
 $("s-anim").onchange = (e) => setLook({ anim: e.target.checked });
 $("s-compact").onchange = (e) => setLook({ compact: e.target.checked });
-$("swatches").replaceChildren(...ACCENTS.map(([c, n]) => {
-  const b = document.createElement("button"); b.dataset.c = c; b.title = n; b.setAttribute("aria-label", n); b.style.background = c;
-  b.onclick = () => setLook({ accent: c }); return b;
-}));
 $("s-glass").oninput = (e) => setLook({ glass: +e.target.value });
 
 // indicador deslizante do menu
@@ -473,7 +457,7 @@ document.addEventListener("pointerdown", (e) => {
 });
 
 // partículas flutuantes
-const cv = $("fx"), cx = cv.getContext("2d"); let pts = [], fxRGB = "74,222,128";
+const cv = $("fx"), cx = cv.getContext("2d"); let pts = [], fxRGB = "196,181,253";
 function fxColor() { fxRGB = getComputedStyle(document.documentElement).getPropertyValue("--accent-rgb").trim() || fxRGB; }
 function fxResize() {
   cv.width = innerWidth; cv.height = innerHeight;

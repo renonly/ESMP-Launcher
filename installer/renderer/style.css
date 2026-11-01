@@ -1,4 +1,4 @@
-:root { --accent:#4ade80; --accent-hover:#86efac; --accent-dark:#22c55e; --on-accent:#06130a; --text:#ececee; --muted:#9a9ca3; --line:rgba(255,255,255,.08); --danger:#f87171; --ease:cubic-bezier(.22,1,.36,1); }
+:root { --accent:#c4b5fd; --accent-hover:#ddd6fe; --accent-dark:#a78bfa; --on-accent:#17122b; --text:#ececee; --muted:#9a9ca3; --line:rgba(255,255,255,.08); --danger:#f87171; --ease:cubic-bezier(.22,1,.36,1); }
 * { box-sizing: border-box; } html, body { height: 100%; margin: 0; }
 body { font: 14px/1.5 "Segoe UI", system-ui, sans-serif; color: var(--text); background: #0d0e10; overflow: hidden; user-select: none; }
 [hidden] { display: none !important; } h1, h2, p { margin: 0; } button, input { font: inherit; color: inherit; }
@@ -28,7 +28,7 @@ body { font: 14px/1.5 "Segoe UI", system-ui, sans-serif; color: var(--text); bac
 .steps li { display: flex; align-items: center; gap: 12px; color: var(--muted); transition: color .3s; }
 .steps i { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font-style: normal; font-size: 12px; font-weight: 700; border: 1px solid var(--line); transition: all .4s var(--ease); }
 .steps li.on { color: #fff; font-weight: 600; } .steps li.on i { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
-.steps li.done i { background: rgba(74,222,128,.18); border-color: var(--accent); color: var(--accent-hover); }
+.steps li.done i { background: rgba(196,181,253,.18); border-color: var(--accent); color: var(--accent-hover); }
 
 .pages { position: relative; padding: 56px 48px 32px; display: flex; }
 .page { flex: 1; display: flex; flex-direction: column; animation: pageIn .6s var(--ease) both; }
@@ -48,7 +48,7 @@ button:active:not(:disabled) { transform: scale(.96); } button:disabled { opacit
 label { display: flex; flex-direction: column; gap: 8px; color: var(--muted); font-size: 12px; }
 .inline { display: flex; gap: 8px; } .inline input { flex: 1; }
 input[type=text], input:not([type]) { background: rgba(0,0,0,.4); border: 1px solid var(--line); border-radius: 8px; padding: 11px 12px; color: var(--text); outline: none; user-select: text; transition: border-color .2s, box-shadow .2s; }
-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(74,222,128,.2); }
+input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(196,181,253,.2); }
 .error { color: var(--danger); min-height: 20px; margin-top: 10px; } .big-err { font-size: 15px; margin-top: 18px; line-height: 1.6; }
 .bar { height: 10px; border-radius: 10px; background: rgba(255,255,255,.1); overflow: hidden; margin-top: 8px; }
 #fill { height: 100%; width: 0; border-radius: 10px; background: var(--accent); transition: width .4s ease; }
