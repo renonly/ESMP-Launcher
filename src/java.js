@@ -7,6 +7,13 @@ const { app } = require("electron");
 // Java baixado pelo próprio launcher (Eclipse Temurin JRE, via API da Adoptium).
 // Fica em <userData>/runtime/java-<versão>, sem mexer no Java do sistema.
 
+const HEADERS = { "User-Agent": "ESMP-Launcher", Accept: "*/*" };
+const why = (e) => {
+  const c = e?.cause;
+  return [e?.message, c?.code, c?.message].filter(Boolean).join(" / ") || String(e);
+};
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
 const runtimeDir = () => path.join(app.getPath("userData"), "runtime");
 const exe = process.platform === "win32" ? "java.exe" : "java";
 const homeDir = (major) => path.join(runtimeDir(), `java-${major}`);
@@ -25,23 +32,30 @@ function platformInfo() {
   return { os, arch };
 }
 
-async function getPackage(major) {
+async function getPackage(major, log) {
   const { os, arch } = platformInfo();
+  const direct = {
+    link: `https://api.adoptium.net/v3/binary/latest/${major}/ga/${os}/${arch}/jre/hotspot/normal/eclipse`,
+    name: `temurin-jre-${major}`, checksum: null, size: 0,
+  };
   const url = `https://api.adoptium.net/v3/assets/latest/${major}/hotspot?image_type=jre&os=${os}&architecture=${arch}&vendor=eclipse`;
-  let res;
-  try { res = await fetch(url, { signal: AbortSignal.timeout(20000) }); }
-  catch { throw new Error("Não consegui falar com o servidor do Java. Verifique sua internet."); }
-  if (!res.ok) throw new Error(`Não achei o Java ${major} para o seu sistema (HTTP ${res.status}).`);
-  const list = await res.json();
-  const pkg = (Array.isArray(list) ? list : []).map((x) => x?.binary).find((b) => b?.image_type === "jre" && b?.package?.link)?.package;
-  if (!pkg) throw new Error(`Não achei o Java ${major} para o seu sistema.`);
-  return pkg; // { link, name, checksum (sha256), size }
+  try {
+    const res = await fetch(url, { headers: HEADERS, signal: AbortSignal.timeout(20000) });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const list = await res.json();
+    const pkg = (Array.isArray(list) ? list : []).map((x) => x?.binary).find((b) => b?.image_type === "jre" && b?.package?.link)?.package;
+    if (!pkg) throw new Error("resposta sem pacote JRE");
+    return pkg; // { link, name, checksum (sha256), size }
+  } catch (e) {
+    log(`[java] API de metadados falhou (${why(e)}). Usando o link direto.`);
+    return direct;
+  }
 }
 
 async function download(url, dest, sizeHint, onProgress) {
   let res;
-  try { res = await fetch(url, { signal: AbortSignal.timeout(15 * 60 * 1000) }); }
-  catch { throw new Error("Falha ao baixar o Java. Verifique sua internet."); }
+  try { res = await fetch(url, { headers: HEADERS, redirect: "follow", signal: AbortSignal.timeout(15 * 60 * 1000) }); }
+  catch (e) { throw new Error(`Falha ao baixar o Java: ${why(e)}`); }
   if (!res.ok || !res.body) throw new Error(`Falha ao baixar o Java (HTTP ${res.status}).`);
   const total = Number(res.headers.get("content-length")) || sizeHint || 0;
   const out = fs.createWriteStream(dest);
@@ -56,8 +70,8 @@ async function download(url, dest, sizeHint, onProgress) {
       if (now - last > 100) { last = now; onProgress(done, total); }
     }
     onProgress(done, total);
-  } catch {
-    throw new Error("A conexão caiu durante o download do Java. Tente de novo.");
+  } catch (e) {
+    throw new Error(`A conexão caiu durante o download do Java: ${why(e)}`);
   } finally {
     await new Promise((r) => out.end(r));
   }
@@ -80,7 +94,8 @@ async function extract(archive, dest) {
     // Usa o tar nativo do Windows (System32), não um tar qualquer do PATH.
     const tar = path.join(process.env.SystemRoot || "C:\\Windows", "System32", "tar.exe");
     try { await run(tar, ["-xf", archive, "-C", dest]); }
-    catch {
+    catch (e1) {
+      fs.rmSync(dest, { recursive: true, force: true }); fs.mkdirSync(dest, { recursive: true });
       const q = (s) => s.replace(/'/g, "''");
       await run("powershell", ["-NoProfile", "-NonInteractive", "-Command",
         `Expand-Archive -LiteralPath '${q(archive)}' -DestinationPath '${q(dest)}' -Force`]);
@@ -118,8 +133,8 @@ function install(major, send, log = () => {}) {
 
     try {
       send("progress", { stage: `Preparando o Java ${major}`, done: 0, total: 0 });
-      const pkg = await getPackage(major);
-      log(`[java] baixando ${pkg.name}`);
+      const pkg = await getPackage(major, log);
+      log(`[java] baixando ${pkg.link}`);
 
       const archive = path.join(tmp, process.platform === "win32" ? "java.zip" : "java.tar.gz");
       const mb = (n) => (n / 1048576).toFixed(1);
@@ -142,7 +157,16 @@ function install(major, send, log = () => {}) {
       const home = path.dirname(path.dirname(bin));
 
       fs.rmSync(homeDir(major), { recursive: true, force: true });
-      fs.renameSync(home, homeDir(major));
+      let moved = false, lastErr;
+      for (let i = 0; i < 8 && !moved; i++) {
+        try { fs.renameSync(home, homeDir(major)); moved = true; }
+        catch (e) { lastErr = e; await sleep(750); }
+      }
+      if (!moved) {
+        log(`[java] rename falhou (${why(lastErr)}). Copiando os arquivos…`);
+        try { fs.cpSync(home, homeDir(major), { recursive: true }); }
+        catch (e) { throw new Error(`Não consegui salvar o Java: ${why(e)}`); }
+      }
       log(`[java] Java ${major} instalado em ${homeDir(major)}`);
       return managedPath(major);
     } finally {
