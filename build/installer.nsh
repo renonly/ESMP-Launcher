@@ -1,5 +1,3 @@
-; Visual do instalador ESMP (tema escuro neutro)
-; Os defines são protegidos: o electron-builder já define alguns (ex.: MUI_HEADERIMAGE_RIGHT)
 !macro customHeader
   !ifdef MUI_BGCOLOR
     !undef MUI_BGCOLOR

@@ -29,7 +29,6 @@ async function run() {
   dir = $("dir").value.trim(); $("dir-error").textContent = "";
   if (!dir) return ($("dir-error").textContent = "Escolha uma pasta.");
   show(2); phase = "download"; dl = 0; render(0);
-  // baixar = 0–60% (real); instalar não informa progresso, então sobe suave de 60 até ~95%
   let v = 60; clearInterval(timer);
   timer = setInterval(() => { if (phase === "install") { v += (95 - v) * 0.04; render(v); } }, 300);
   const r = await api.install(dir);

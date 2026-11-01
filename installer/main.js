@@ -27,7 +27,6 @@ const REPO = "renonly/ESMP-Launcher";
 const UA = { "User-Agent": "ESMP-Installer", Accept: "application/vnd.github+json" };
 const send = (ch, d) => { if (win && !win.isDestroyed()) win.webContents.send(ch, d); };
 
-// o instalador do launcher (NSIS) é baixado da última release (assim este .exe fica leve)
 async function findSetup() {
   const r = await net.fetch(`https://api.github.com/repos/${REPO}/releases/latest`, { headers: UA });
   if (!r.ok) throw new Error(`Não consegui consultar a última versão (erro ${r.status}). Tente de novo em instantes.`);
@@ -58,7 +57,6 @@ ipcMain.handle("chooseDir", async () => {
   const r = await dialog.showOpenDialog(win, { title: "Onde instalar o ESMP?", properties: ["openDirectory", "createDirectory"] });
   if (r.canceled || !r.filePaths[0]) return null;
   const p = r.filePaths[0];
-  // se escolheu uma pasta qualquer, instala numa subpasta própria (não bagunça a pasta escolhida)
   return path.basename(p).toLowerCase() === PRODUCT.toLowerCase() ? p : path.join(p, PRODUCT);
 });
 
@@ -76,7 +74,6 @@ ipcMain.handle("install", async (_e, dir) => {
     return { ok: false, error: e.message || "Não foi possível baixar o launcher. Verifique sua internet." };
   }
   send("phase", "install");
-  // NSIS silencioso: /S sem janela; /D= precisa ser o último argumento e SEM aspas
   return new Promise((resolve) => {
     exec(`"${exe}" /S /D=${dir}`, { windowsHide: true }, (err) => {
       fs.rmSync(exe, { force: true });

@@ -28,7 +28,6 @@ const log = (...a) => {
   } catch {}
 };
 
-// proteção: erro inesperado vai pro launcher.log em vez de derrubar o app em silêncio
 process.on("uncaughtException", (e) => log("uncaughtException", e));
 process.on("unhandledRejection", (e) => log("unhandledRejection", e instanceof Error ? e : new Error(String(e))));
 app.on("child-process-gone", (_e, d) => log("child-process-gone", JSON.stringify(d)));
@@ -44,13 +43,11 @@ function createWindow() {
   win.once("ready-to-show", () => win.show());
   setTimeout(() => { if (win && !win.isVisible()) win.show(); }, 4000);
   win.loadFile(path.join(__dirname, "renderer", "index.html"));
-  // diagnóstico: tudo que der errado na tela vai pro launcher.log
   win.webContents.on("console-message", (_e, level, msg, line, src) => { if (level >= 2) log("renderer:", msg, `(${src}:${line})`); });
   win.webContents.on("render-process-gone", (_e, d) => log("render-process-gone", JSON.stringify(d)));
   win.webContents.on("unresponsive", () => log("janela não está respondendo"));
   win.webContents.on("preload-error", (_e, p, err) => log("preload-error", p, err));
   win.webContents.on("did-fail-load", (_e, code, desc) => log("did-fail-load", code, desc));
-  // F12 ou Ctrl+Shift+I abre o DevTools
   win.webContents.on("before-input-event", (_e, i) => {
     if (i.type === "keyDown" && (i.key === "F12" || (i.control && i.shift && i.key.toLowerCase() === "i")))
       win.webContents.toggleDevTools();
@@ -59,22 +56,18 @@ function createWindow() {
 }
 app.on("second-instance", () => { if (win) { if (win.isMinimized()) win.restore(); win.focus(); } });
 
-// ================= AUTO-UPDATE DO LAUNCHER =================
-// Estados: idle | checking | downloading | ready | none | manual | error | dev
 let upd = { state: "idle", current: app.getVersion() };
 const setUpd = (state, extra = {}) => {
   upd = { state, current: app.getVersion(), ...extra };
   if (win && !win.isDestroyed()) win.webContents.send("update:status", upd);
 };
-const newer = (a, b) => { // a > b ?
+const newer = (a, b) => {
   const p = (v) => String(v).replace(/^v/, "").split(".").map((n) => parseInt(n, 10) || 0);
   const [x, y] = [p(a), p(b)];
   for (let i = 0; i < 3; i++) if ((x[i] || 0) !== (y[i] || 0)) return (x[i] || 0) > (y[i] || 0);
   return false;
 };
 
-// Plano B: se o electron-updater falhar, consulta a Release no GitHub
-// e avisa com link pra baixar o instalador novo.
 async function fallbackCheck(reason) {
   try {
     const res = await fetch(`https://api.github.com/repos/${cfg.GITHUB_REPO}/releases/latest`, {
@@ -123,7 +116,6 @@ ipcMain.on("update:install", () => {
   if (upd.state === "ready") setImmediate(() => autoUpdater.quitAndInstall(true, true));
 });
 
-// ================= IPC =================
 const wrap = (fn) => async (_e, ...args) => {
   try { return { ok: true, data: await fn(...args) }; }
   catch (err) { return { ok: false, error: err.message }; }
@@ -160,7 +152,6 @@ ipcMain.handle("game:installed", () => game.isInstalled());
 ipcMain.handle("stats", () => stats.load());
 ipcMain.handle("news", () => news.get());
 
-// fundo personalizado
 ipcMain.handle("bg:choose", async () => {
   const r = await dialog.showOpenDialog(win, {
     title: "Escolher imagem de fundo", properties: ["openFile"],
@@ -181,7 +172,6 @@ ipcMain.handle("bg:clear", () => {
   return withBg(settings.save({ bgPath: "" }));
 });
 
-// Java
 ipcMain.handle("java:detect", () => game.detectJava());
 ipcMain.handle("java:choose", async () => {
   const r = await dialog.showOpenDialog(win, {
@@ -191,7 +181,6 @@ ipcMain.handle("java:choose", async () => {
   return r.canceled ? "" : r.filePaths[0];
 });
 
-// capturas de tela
 const shotsDir = () => path.join(game.gameDir(), "screenshots");
 ipcMain.handle("shots:list", () => {
   const dir = shotsDir();
@@ -205,7 +194,6 @@ ipcMain.handle("shots:show", (_e, p) => {
   if (path.resolve(p).startsWith(path.resolve(shotsDir()))) shell.showItemInFolder(p);
 });
 
-// pastas / links
 ipcMain.handle("shell:openGame", () => { fs.mkdirSync(game.gameDir(), { recursive: true }); return shell.openPath(game.gameDir()); });
 ipcMain.handle("shell:openShots", () => { fs.mkdirSync(shotsDir(), { recursive: true }); return shell.openPath(shotsDir()); });
 ipcMain.handle("shell:openData", () => shell.openPath(app.getPath("userData")));
@@ -215,7 +203,6 @@ ipcMain.handle("shell:external", (_e, url) => {
 });
 ipcMain.on("clipboard:copy", (_e, text) => clipboard.writeText(String(text)));
 
-// jogo
 ipcMain.handle("game:play", wrap(async () => {
   if (running) throw new Error("O jogo já está em execução.");
   const session = auth.load();
@@ -251,7 +238,7 @@ ipcMain.handle("game:sync", wrap(async (force) => {
 ipcMain.handle("game:uninstall", wrap(async () => {
   if (running) throw new Error("Feche o jogo antes de desinstalar.");
   const dir = game.gameDir();
-  if (path.basename(dir) !== "instance") throw new Error("Pasta do jogo inesperada, nada foi apagado.");   // trava de seguranca
+  if (path.basename(dir) !== "instance") throw new Error("Pasta do jogo inesperada, nada foi apagado.");
   if (!fs.existsSync(dir)) return { removed: false, reason: "Nada instalado." };
   const { response } = await dialog.showMessageBox(win, {
     type: "warning", title: "Desinstalar Minecraft", noLink: true, cancelId: 0, defaultId: 0,
@@ -261,10 +248,10 @@ ipcMain.handle("game:uninstall", wrap(async () => {
             "\"Manter mundos e capturas\" preserva as pastas saves e screenshots. \"Desinstalar tudo\" apaga também seus mundos do singleplayer.",
   });
   if (response === 0) return { removed: false, cancelled: true };
-  running = true;   // evita sincronizar/abrir o jogo no meio da remocao
+  running = true;
   try {
     const keep = response === 1 ? new Set(["saves", "screenshots"]) : new Set();
-    const opts = { recursive: true, force: true, maxRetries: 5, retryDelay: 300 };   // Windows as vezes segura o arquivo por um instante
+    const opts = { recursive: true, force: true, maxRetries: 5, retryDelay: 300 };
     if (keep.size === 0) fs.rmSync(dir, opts);
     else for (const name of fs.readdirSync(dir)) if (!keep.has(name)) fs.rmSync(path.join(dir, name), opts);
   } finally { running = false; }

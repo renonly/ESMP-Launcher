@@ -12,14 +12,12 @@ const fmtDate = (d) => new Date(d).toLocaleDateString("pt-BR");
 const fmtHours = (ms) => { const m = Math.floor(ms / 60000); return m < 60 ? `${m} min` : `${(m / 60).toFixed(1).replace(".0", "")} h`; };
 const debounce = (fn, ms) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; };
 
-// logos opcionais: some se o arquivo não existir (onerror inline é bloqueado pela CSP)
 document.querySelectorAll("img.logo, img.logo-sm").forEach((img) => {
   const drop = () => img.remove();
   img.addEventListener("error", drop);
   if (img.complete && img.naturalWidth === 0) drop();
 });
 
-// ---------- navegação ----------
 function go(tab) {
   document.querySelectorAll("#nav button").forEach((b) => b.classList.toggle("active", b.dataset.tab === tab));
   document.querySelectorAll(".view").forEach((v) => (v.hidden = v.dataset.view !== tab));
@@ -41,7 +39,6 @@ $("subtabs").onclick = (e) => {
   document.querySelectorAll(".sub-pane").forEach((p) => (p.hidden = p.dataset.pane !== b.dataset.sub));
 };
 
-// ---------- login ----------
 let registering = false;
 function setMode(reg) {
   registering = reg;
@@ -75,10 +72,8 @@ function enter(session) {
   go("play"); refreshStatus(); loadNews(true); loadPackChip(); refreshInstalled();
 }
 
-// ---------- aparência ----------
-function applyLook() {} // visual fixo (cor e fundo definidos no CSS)
+function applyLook() {}
 
-// ---------- status do servidor (só ícones, sem IP) ----------
 async function refreshStatus() {
   const st = await api.status();
   state.status = st;
@@ -87,10 +82,8 @@ async function refreshStatus() {
   $("t-ping").textContent = st.online ? st.ping + " ms" : "—";
 }
 
-// ---------- markdown simples e seguro (so cria elementos DOM, nunca innerHTML) ----------
 const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
 function mdInline(text, parent) {
-  // ordem: `codigo`, **negrito**, *italico*/_italico_, [texto](link), link solto
   const re = /`([^`]+)`|\*\*([^*]+)\*\*|__([^_]+)__|\*([^*\s][^*]*)\*|(?<![\w])_([^_\s][^_]*)_(?![\w])|\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)|(https?:\/\/[^\s<>)]+)/g;
   let last = 0, m;
   const link = (label, url) => { const a = el("a", "md-link", label); a.href = "#"; a.dataset.ext = url; a.title = url; return a; };
@@ -117,7 +110,6 @@ function renderMarkdown(src, skipTitles = []) {
     if ((m = t.match(/^(#{1,6})\s+(.*)$/))) {
       flush();
       const title = m[2].trim();
-      // o 1º titulo costuma repetir o nome da versao que ja esta no cabecalho do cartao
       if (first && skipTitles.some((s) => s && title.toLowerCase().includes(String(s).toLowerCase()))) { first = false; continue; }
       first = false;
       const h = el("h" + Math.min(6, Math.max(3, m[1].length + 1)), "md-h"); mdInline(title, h); root.append(h); continue;
@@ -141,7 +133,6 @@ function renderMarkdown(src, skipTitles = []) {
   }
   return root;
 }
-// resumo de uma linha para o cartao da tela inicial (sem simbolos de markdown)
 function mdSummary(body) {
   for (const raw of String(body || "").split("\n")) {
     let t = raw.trim();
@@ -152,7 +143,6 @@ function mdSummary(body) {
   return "";
 }
 
-// ---------- novidades ----------
 async function loadNews(small) {
   const list = await api.news();
   if (list.length) {
@@ -176,7 +166,6 @@ async function loadNews(small) {
   }));
 }
 
-// ---------- instalado? (o botao principal vira "Instalar" quando nao ha jogo) ----------
 function updatePlayBtn() { $("play").textContent = state.installed ? "Jogar" : "Instalar"; }
 async function refreshInstalled() {
   try { state.installed = !!(await api.installed()); } catch { state.installed = true; }
@@ -184,7 +173,6 @@ async function refreshInstalled() {
 }
 async function installGame() { if (!state.busy && !state.running) await runSync(false, true); }
 
-// ---------- pack ----------
 async function loadPackChip() {
   const r = await api.packInfo();
   if (r.ok) state.pack = r.data;
@@ -205,7 +193,6 @@ function renderPack() {
   const chip = (t) => { const c = document.createElement("span"); c.className = "chip static"; c.textContent = t; return c; };
   $("pack-stats").replaceChildren(chip(`${p.files.length} arquivos`), chip(fmtSize(total)), chip(`${ok} instalados`));
 
-  // aviso so aparece quando ha algo a dizer (o botao de atualizar so surge se houver atualizacao)
   const bn = $("pack-banner"), bt = $("pack-banner-text"), bu = $("pack-update");
   bn.hidden = false; bn.className = "banner"; bu.hidden = true;
   if (p.offline) { bn.classList.add("warn"); bt.textContent = "⚠ Sem conexão: não deu pra checar atualizações"; }
@@ -255,7 +242,7 @@ $("s-repair").onclick = confirmRepair;
 $("s-uninstall").onclick = async () => {
   if (state.busy || state.running) return;
   $("s-sync-error").textContent = "";
-  setBusy(true);   // trava os outros botoes enquanto apaga
+  setBusy(true);
   const r = await api.uninstall();
   setBusy(false);
   if (!r.ok) { $("s-sync-error").textContent = r.error; return; }
@@ -263,10 +250,9 @@ $("s-uninstall").onclick = async () => {
   if (d.cancelled) return;
   if (!d.removed) { toast(d.reason || "Nada para desinstalar."); return; }
   toast(d.kept ? "Minecraft desinstalado (mundos e capturas mantidos)." : "Minecraft desinstalado.");
-  loadPack(); refreshInstalled();   // o botao principal volta a ser "Instalar"
+  loadPack(); refreshInstalled();
 };
 
-// ---------- capturas ----------
 async function loadShots() {
   const list = await api.shots();
   $("shots-empty").hidden = list.length > 0;
@@ -281,7 +267,6 @@ $("lb-close").onclick = () => ($("lightbox").hidden = true);
 $("lightbox").onclick = (e) => { if (e.target.id === "lightbox") $("lightbox").hidden = true; };
 $("lb-show").onclick = () => state.shot && api.showShot(state.shot.path);
 
-// ---------- jogar ----------
 function setBusy(b) {
   state.busy = b;
   $("play").disabled = b || state.running; $("pack-update").disabled = b; $("s-check").disabled = b || state.running; $("s-repair").disabled = b || state.running; $("s-uninstall").disabled = b || state.running;
@@ -312,7 +297,7 @@ api.on("closed", (code) => {
 });
 $("play").onclick = async () => {
   if (state.busy || state.running) return;
-  if (!state.installed) return installGame();   // sem jogo instalado: so baixa o pack (nao abre o jogo)
+  if (!state.installed) return installGame();
   $("game-error").textContent = ""; setBusy(true);
   const r = await api.play();
   if (!r.ok) { setBusy(false); $("game-error").textContent = r.error; }
@@ -321,7 +306,6 @@ $("stop").onclick = () => api.stop();
 $("log-copy").onclick = () => { api.copy(logEl.textContent); toast("Log copiado!"); };
 $("log-clear").onclick = () => (logEl.textContent = "");
 
-// ---------- ajustes ----------
 function fillSettings(s) {
   state.s = s;
   $("s-ram").value = s.ramGb;
@@ -367,7 +351,6 @@ $("java-detect").onclick = async () => {
   }));
 };
 
-// ---------- auto-update do launcher ----------
 const UPD_TEXT = {
   checking: () => "Procurando atualizações…",
   downloading: (u) => `Baixando v${u.version}… ${u.percent || 0}%`,
@@ -401,7 +384,6 @@ $("upd-btn").onclick = () => {
 $("upd-check").onclick = async () => showUpdate(await api.updateCheck());
 api.onUpdate(showUpdate);
 
-// ---------- início ----------
 (async function init() {
   state.cfg = await api.config();
   document.title = state.cfg.name;
@@ -410,13 +392,12 @@ api.onUpdate(showUpdate);
   $("about").textContent = `${state.cfg.name} Launcher v${state.cfg.version}`;
   fillSettings(await api.getSettings());
   ramSync(state.s.ramGb);
-  showUpdate(await api.updateState()); // pega o estado atual (evita perder eventos)
+  showUpdate(await api.updateState());
   setInterval(() => state.session && refreshStatus(), 30000);
   const session = await api.session();
   if (session) enter(session);
 })();
 
-// ---------- aparência (guardada no localStorage) ----------
 const LOOK_DEFAULT = { aurora: false, particles: false, anim: true, compact: false, glass: 80 };
 let look = { ...LOOK_DEFAULT };
 try { Object.assign(look, JSON.parse(localStorage.getItem("look") || "{}")); } catch {}
@@ -438,7 +419,6 @@ $("s-anim").onchange = (e) => setLook({ anim: e.target.checked });
 $("s-compact").onchange = (e) => setLook({ compact: e.target.checked });
 $("s-glass").oninput = (e) => setLook({ glass: +e.target.value });
 
-// indicador deslizante do menu
 function moveInd() {
   const a = document.querySelector("#nav button.active"), ind = $("nav-ind");
   if (a && ind) { ind.style.width = a.offsetWidth + "px"; ind.style.transform = `translateX(${a.offsetLeft}px)`; }
@@ -447,7 +427,6 @@ new MutationObserver(moveInd).observe($("nav"), { subtree: true, attributes: tru
 setTimeout(moveInd, 50); addEventListener("resize", moveInd);
 $("app").addEventListener("animationend", moveInd);
 
-// efeito ripple nos botões
 document.addEventListener("pointerdown", (e) => {
   const b = e.target.closest(".solid, .outline, .danger"); if (!b || b.disabled || !look.anim) return;
   const r = b.getBoundingClientRect(), s = Math.max(r.width, r.height) / 4;
@@ -456,7 +435,6 @@ document.addEventListener("pointerdown", (e) => {
   b.append(d); setTimeout(() => d.remove(), 650);
 });
 
-// partículas flutuantes
 const cv = $("fx"), cx = cv.getContext("2d"); let pts = [], fxRGB = "196,181,253";
 function fxColor() { fxRGB = getComputedStyle(document.documentElement).getPropertyValue("--accent-rgb").trim() || fxRGB; }
 function fxResize() {
@@ -479,5 +457,4 @@ function fxTick() {
 }
 addEventListener("resize", fxResize); fxResize(); applyLookUI(); fxTick();
 
-// ---------- abertura: fundo escuro neutro, depois fade e slide-in sutil ----------
 setTimeout(() => document.documentElement.classList.remove("booting"), 2600);

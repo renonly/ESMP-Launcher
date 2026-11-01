@@ -1,4 +1,3 @@
-// Estatísticas locais do jogador (tempo de jogo, aberturas)
 const { app } = require("electron");
 const fs = require("fs");
 const path = require("path");

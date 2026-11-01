@@ -9,7 +9,6 @@ const { neoJvmArgs, tailLogs } = require("./neoargs");
 
 const gameDir = () => path.join(app.getPath("userData"), "instance");
 
-// Baixa o profile do Fabric e deixa em versions/<id>/<id>.json
 async function ensureFabric(root, mc, loader) {
   const id = `fabric-loader-${loader}-${mc}`;
   const jsonPath = path.join(root, "versions", id, `${id}.json`);
@@ -25,7 +24,6 @@ async function ensureFabric(root, mc, loader) {
   return id;
 }
 
-// Baixa o instalador do Forge (o minecraft-launcher-core roda ele sozinho na 1ª vez)
 async function ensureForge(root, mc, loader) {
   const name = `forge-${mc}-${loader}-installer.jar`;
   const dest = path.join(root, "forge", name);
@@ -43,7 +41,6 @@ async function ensureForge(root, mc, loader) {
   return dest;
 }
 
-// NeoForge: baixa o instalador e roda "--installClient" na pasta da instância (1ª vez)
 async function ensureNeoForge(root, loader, javaPath, log) {
   const id = `neoforge-${loader}`;
   if (fs.existsSync(path.join(root, "versions", id, `${id}.json`))) return id;
@@ -60,7 +57,6 @@ async function ensureNeoForge(root, loader, javaPath, log) {
     fs.writeFileSync(tmp, Buffer.from(await res.arrayBuffer()));
     fs.renameSync(tmp, dest);
   }
-  // o instalador exige um launcher_profiles.json na pasta de destino
   const prof = path.join(root, "launcher_profiles.json");
   if (!fs.existsSync(prof)) fs.writeFileSync(prof, JSON.stringify({ profiles: {} }));
   await new Promise((resolve, reject) => {
@@ -74,7 +70,6 @@ async function ensureNeoForge(root, loader, javaPath, log) {
   return id;
 }
 
-// Versão mínima do Java exigida pelo Minecraft
 function requiredJava(mc) {
   const [, minor = "0", patch = "0"] = mc.split(".");
   const m = Number(minor), p = Number(patch);
@@ -84,7 +79,6 @@ function requiredJava(mc) {
   return 8;
 }
 
-// Roda "java -version" e devolve a versão principal (ou null se não achar)
 function javaMajor(javaPath) {
   const r = spawnSync(javaPath || "java", ["-version"], { encoding: "utf8", timeout: 8000 });
   if (r.error) return null;
@@ -100,7 +94,6 @@ const PRESETS = {
        "-XX:G1HeapRegionSize=32M"],
 };
 
-// Procura Javas instalados nos lugares comuns
 function detectJava() {
   const found = new Map();
   const add = (p) => {
@@ -133,7 +126,6 @@ function checkJava(mc, javaPath) {
     throw new Error(`Seu Java é o ${have}, mas o Minecraft ${mc} precisa do Java ${need} ou mais novo.`);
 }
 
-// Só atualiza o pack (sem abrir o jogo). force = "Reparar arquivos".
 async function syncOnly(force, send) {
   const root = gameDir();
   fs.mkdirSync(root, { recursive: true });
@@ -145,9 +137,6 @@ async function play(session, s, send) {
   fs.mkdirSync(root, { recursive: true });
 
   const manifest = await updater.sync(root, (p) => send("progress", p));
-  // versão do Minecraft/Fabric vem do pack.json do repositório do modpack
-  // A API atual publica minecraft como { version: "1.21.1" };
-  // mantemos compatibilidade com manifestos antigos que usam uma string.
   const mc = typeof manifest.minecraft === "string"
     ? manifest.minecraft
     : manifest.minecraft?.version || cfg.MC_VERSION;
@@ -160,7 +149,7 @@ async function play(session, s, send) {
   checkJava(mc, s.javaPath);
   const log = (m) => String(m).split(/\r?\n/).filter(Boolean).forEach((l) => send("log", l));
   let fabricId = null, forgeInstaller = null;
-  if (loaderType === "neoforge") fabricId = await ensureNeoForge(root, loader, s.javaPath, log); // usa o perfil instalado como "custom"
+  if (loaderType === "neoforge") fabricId = await ensureNeoForge(root, loader, s.javaPath, log);
   else if (loaderType === "forge") forgeInstaller = await ensureForge(root, mc, loader);
   else fabricId = await ensureFabric(root, mc, loader);
 
@@ -173,7 +162,6 @@ async function play(session, s, send) {
   launcher.on("close", (code) => { if (code) tailLogs(root, log); send("closed", code); });
 
   const opts = {
-    // Sessão do SMP: nome + UUID vindos da sua API.
     authorization: {
       access_token: session.token,
       client_token: session.uuid,
@@ -186,13 +174,10 @@ async function play(session, s, send) {
     version: fabricId ? { number: mc, type: "release", custom: fabricId } : { number: mc, type: "release" },
     ...(forgeInstaller ? { forge: forgeInstaller } : {}),
     memory: { max: `${s.ramGb}G`, min: `${Math.max(1, Math.min(2, s.ramGb))}G` },
-    // Entra direto no servidor
     server: { host: cfg.SERVER_HOST, port: cfg.SERVER_PORT },
-    // Quando você tiver o servidor de auth (authlib-injector), descomente:
-    // customArgs: [`-javaagent:${path.join(root, "authlib-injector.jar")}=${cfg.API_URL}`],
   };
   if (s.javaPath) opts.javaPath = s.javaPath;
-  opts.detached = false; // sem janela de console solta do Java
+  opts.detached = false;
   const neoArgs = loaderType === "neoforge" ? neoJvmArgs(root, fabricId, log) : [];
   const extra = [...neoArgs, ...(PRESETS[s.jvmPreset] || []), ...s.jvmArgs.split(/\s+/).filter(Boolean)];
   if (extra.length) opts.customArgs = extra;

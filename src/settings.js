@@ -1,4 +1,3 @@
-// Preferências do jogador, salvas em userData/settings.json
 const { app } = require("electron");
 const fs = require("fs");
 const path = require("path");
@@ -10,14 +9,14 @@ const defaults = () => ({
   ramGb: cfg.DEFAULT_RAM_GB,
   javaPath: "",
   jvmArgs: "",
-  jvmPreset: "g1",        // none | g1
+  jvmPreset: "g1",
   fullscreen: false,
   width: 0,
   height: 0,
-  onLaunch: "minimize",   // minimize | keep | quit
+  onLaunch: "minimize",
   launchAtStartup: false,
   accent: "#c4b5fd",
-  bgPath: "",             // imagem de fundo escolhida pelo jogador
+  bgPath: "",
   bgBlur: 6,
   bgDim: 55,
 });

@@ -1,4 +1,3 @@
-// Novidades = notas das Releases do GitHub do launcher
 const { GITHUB_REPO } = require("./config");
 let cache = { at: 0, data: [] };
 

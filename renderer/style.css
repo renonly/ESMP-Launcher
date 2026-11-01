@@ -13,7 +13,6 @@ h1, h2, h3, p { margin: 0; }
 button, input, select { font: inherit; color: inherit; }
 ::-webkit-scrollbar { width: 8px; } ::-webkit-scrollbar-thumb { background: rgba(255,255,255,.14); border-radius: 8px; }
 
-/* ===== fundo ===== */
 .bg { position: fixed; inset: 0; z-index: -4; background: var(--bg) url("background.jpg") center / cover no-repeat; }
 .veil { position: fixed; inset: 0; z-index: -3; background: linear-gradient(180deg, rgba(10,11,13,.80), rgba(10,11,13,.90)); }
 .aurora { position: fixed; inset: 0; z-index: -2; overflow: hidden; pointer-events: none; transition: opacity .6s; }
@@ -27,7 +26,6 @@ button, input, select { font: inherit; color: inherit; }
 .no-particles #fx { display: none; }
 .no-anim *, .no-anim *::before, .no-anim *::after { animation: none !important; transition: none !important; }
 
-/* ===== lotus vetorial (nitida em qualquer tamanho) ===== */
 .lotus { --k: 1; width: calc(144px * var(--k)); aspect-ratio: 317 / 262; }
 .lotus.xl { --k: 1.25; }
 .lotus svg { width: 100%; height: 100%; overflow: visible; display: block; }
@@ -39,7 +37,6 @@ button, input, select { font: inherit; color: inherit; }
 @keyframes sway { to { transform: scale(1.025); } }
 @media (prefers-reduced-motion: reduce) { .lotus path { animation: none; } }
 
-/* ===== barra superior ===== */
 .dragbar { position: fixed; top: 0; left: 0; right: 0; height: 14px; -webkit-app-region: drag; z-index: 40; }
 .topbar { position: relative; z-index: 50; height: 66px; display: flex; align-items: center; gap: 24px; padding: 0 12px 0 28px; -webkit-app-region: drag; background: linear-gradient(180deg, rgba(8,9,10,.80), rgba(8,9,10,0)); }
 .topbar button, .topbar .me, .topbar .upd { -webkit-app-region: no-drag; }
@@ -49,7 +46,6 @@ button, input, select { font: inherit; color: inherit; }
 .win-btns button:hover { background: rgba(255,255,255,.1); color: #fff; }
 .win-btns .close:hover { background: #e5484d; }
 
-/* ===== botoes ===== */
 button { cursor: pointer; border-radius: 8px; border: 1px solid transparent; padding: 9px 16px; transition: transform .2s var(--ease), background .2s, border-color .2s, color .2s, box-shadow .2s; position: relative; overflow: hidden; }
 button:active:not(:disabled) { transform: scale(.96); }
 button:disabled { opacity: .5; cursor: default; }
@@ -66,7 +62,6 @@ button:disabled { opacity: .5; cursor: default; }
 .ripple { position: absolute; border-radius: 50%; background: rgba(255,255,255,.35); transform: scale(0); animation: rip .6s ease-out forwards; pointer-events: none; }
 @keyframes rip { to { transform: scale(4); opacity: 0; } }
 
-/* ===== campos ===== */
 label { display: flex; flex-direction: column; gap: 6px; color: var(--muted); font-size: 12px; margin-bottom: 12px; }
 input[type=text], input:not([type]), input[type=password], input[type=number], input[type=search], select {
   background: rgba(0,0,0,.35); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; color: var(--text); outline: none; user-select: text; transition: border-color .2s, box-shadow .2s; }
@@ -80,7 +75,6 @@ input[type=range] { accent-color: var(--accent); padding: 0; }
 .switch input::after { content: ""; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%; background: #fff; transition: transform .3s var(--ease); }
 .switch input:checked { background: var(--accent); } .switch input:checked::after { transform: translateX(16px); }
 
-/* ===== login dividido ===== */
 .split { height: 100%; display: grid; grid-template-columns: 1.15fr 1fr; }
 .art { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; text-align: center; background: linear-gradient(160deg, rgba(255,255,255,.05), rgba(0,0,0,.18) 70%); clip-path: polygon(0 0, 100% 0, 88% 100%, 0 100%); padding-right: 8%; animation: fade 1s ease both; }
 .art .lotus { --k: 1.9; }
@@ -95,7 +89,6 @@ input[type=range] { accent-color: var(--accent); padding: 0; }
 .card .ghost { margin-top: 8px; }
 @keyframes slideIn { from { opacity: 0; transform: translateX(60px); } }
 
-/* ===== app: navegacao no topo ===== */
 .app { display: flex; flex-direction: column; height: 100%; animation: fade .6s ease both; }
 @keyframes fade { from { opacity: 0; } }
 .brand { display: flex; align-items: center; gap: 10px; font-size: 17px; letter-spacing: 5px; white-space: nowrap; }
@@ -126,7 +119,6 @@ input[type=range] { accent-color: var(--accent); padding: 0; }
 .panel-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
 .panel-head h2 { margin: 0; }
 
-/* ===== inicio: palco ===== */
 .stage { position: relative; height: 100%; padding: 0 40px 26px 48px; display: grid; grid-template-columns: 1fr 300px; grid-template-rows: 1fr auto; gap: 18px 36px; }
 .hero { grid-row: 1; align-self: center; display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }
 .hero .lotus { --k: 1.6; margin-left: -8px; }
@@ -153,7 +145,6 @@ input[type=range] { accent-color: var(--accent); padding: 0; }
 .bar div { height: 100%; width: 0; background: var(--accent); transition: width .25s; }
 .error { text-align: right; }
 
-/* ===== listas ===== */
 .stack { display: flex; flex-direction: column; gap: 12px; }
 .news-item { padding: 16px 18px; border-radius: 8px; border-left: 3px solid var(--accent); background: var(--panel2); border: 1px solid var(--line); animation: viewIn .5s var(--ease) both; transition: transform .25s var(--ease), border-color .2s; }
 .news-item:hover { transform: translateY(-3px); border-color: rgba(var(--accent-rgb),.5); }
@@ -174,7 +165,6 @@ input[type=range] { accent-color: var(--accent); padding: 0; }
 .console-view { display: flex; flex-direction: column; }
 .log { flex: 1; margin: 0; padding: 14px; overflow: auto; border-radius: 16px; background: rgba(0,0,0,.55); border: 1px solid var(--line); font: 12px/1.5 Consolas, monospace; color: #c9cbd1; white-space: pre-wrap; user-select: text; }
 
-/* ===== ajustes ===== */
 .subtabs { display: flex; gap: 22px; margin-bottom: 18px; border-bottom: 1px solid var(--line); }
 .subtabs button { background: transparent; color: var(--muted); border-radius: 0; padding: 8px 2px; border-bottom: 3px solid transparent; margin-bottom: -1px; font-weight: 600; }
 .subtabs button:hover { color: #fff; }
@@ -192,21 +182,18 @@ input[type=range] { accent-color: var(--accent); padding: 0; }
 .toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%); z-index: 90; padding: 11px 22px; border-radius: 999px; background: #232427; border: 1px solid var(--line); box-shadow: 0 8px 24px rgba(0,0,0,.4); animation: toastIn .5s var(--ease) both; }
 @keyframes toastIn { from { opacity: 0; transform: translate(-50%, 24px) scale(.9); } }
 
-/* ajustes de largura da barra superior */
 .topbar { gap: 12px; padding-left: 22px; }
 #nav { margin-left: 4px; } #nav button { padding: 8px 10px; }
 .top-right { gap: 8px; }
 .me-info b { max-width: 80px; }
 @media (max-width: 1100px) { .brand b, .me-info { display: none; } }
 
-/* ===== abertura (intro) ===== */
 .intro { position: fixed; inset: 0; z-index: 500; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; background: #0d0e10; transition: opacity 1s ease, visibility 1s; }
 @keyframes introIn { from { opacity: 0; transform: scale(.85); } }
 .intro-name { font-size: 22px; letter-spacing: 14px; margin-right: -14px; color: #fff; animation: introIn 1.2s var(--ease) .5s both; }
 .intro-line { width: 120px; height: 2px; border-radius: 2px; background: linear-gradient(90deg, transparent, var(--accent), transparent); animation: introLine 1.6s ease .6s both; }
 @keyframes introLine { from { width: 0; opacity: 0; } }
 html:not(.booting) .intro { opacity: 0; visibility: hidden; pointer-events: none; }
-/* durante a abertura as animações da interface ficam em espera e depois entram com slide sutil */
 html.booting .app *, html.booting .split * { animation-play-state: paused !important; }
 html.booting .app, html.booting .split { opacity: 0; }
 .topbar { animation: topIn .9s var(--ease) .1s both; }
@@ -216,7 +203,6 @@ html.booting .app, html.booting .split { opacity: 0; }
 @media (prefers-reduced-motion: reduce) { .topbar, .hero { animation: none; } }
 .intro-lotus { --k: 1.1; }
 
-/* ===== pack de mods (limpo) ===== */
 .panel-head .stats { margin: 0; justify-content: flex-end; }
 .banner { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 14px; margin-bottom: 8px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel2); font-size: 13px; }
 .banner.good { border-color: rgba(74,222,128,.35); color: var(--ok); background: rgba(74,222,128,.07); }
@@ -233,13 +219,11 @@ html.booting .app, html.booting .split { opacity: 0; }
 .mini-progress { margin-top: 12px; }
 .group .note { margin: 0; }
 
-/* espacamento dos Arquivos do pack + zona de perigo */
 #s-pack-info { margin-bottom: 4px; line-height: 1.5; }
 .mini-progress { margin-top: 16px; }
 .danger-zone { margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--line); display: flex; flex-direction: column; align-items: flex-start; gap: 12px; }
 .danger-zone .note { margin: 0; }
 
-/* ===== novidades em markdown ===== */
 .news-item .md { color: var(--text); font-size: 14px; line-height: 1.6; user-select: text; }
 .news-item .md > :first-child { margin-top: 0; } .news-item .md > :last-child { margin-bottom: 0; }
 .md p { margin: 8px 0; color: var(--muted); }
@@ -254,7 +238,6 @@ html.booting .app, html.booting .split { opacity: 0; }
 .md a.md-link { color: var(--accent-hover); text-decoration: none; border-bottom: 1px dashed rgba(var(--accent-rgb),.6); word-break: break-all; }
 .md a.md-link:hover { color: #fff; border-bottom-style: solid; }
 
-/* ===== Arquivos do pack: respiro entre os blocos ===== */
 #grp-pack { display: flex; flex-direction: column; gap: 20px; padding: 22px 24px; }
 #grp-pack > * { margin: 0; }
 #grp-pack h3 { margin: 0; }

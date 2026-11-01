@@ -1,4 +1,3 @@
-// copia o instalador NSIS do launcher (gerado por `npm run dist`) pra dentro do instalador customizado
 const fs = require("fs"), path = require("path");
 const root = path.join(__dirname, "..");
 const dist = path.join(root, "dist");

@@ -33,7 +33,6 @@ contextBridge.exposeInMainWorld("lsmp", {
   openExternal: inv("shell:external"),
   copy: (t) => ipcRenderer.send("clipboard:copy", t),
   win: (a) => ipcRenderer.send("win", a),
-  // auto-update do launcher
   updateState: inv("update:state"),
   updateCheck: inv("update:check"),
   installUpdate: () => ipcRenderer.send("update:install"),

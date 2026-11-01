@@ -1,6 +1,3 @@
-// O minecraft-launcher-core ignora "arguments.jvm" do perfil do NeoForge/Forge moderno
-// (module path, --add-opens, -DlibraryDirectory...). Sem isso o jogo fecha com código 1.
-// Aqui lemos esses argumentos do perfil instalado e trocamos as variáveis.
 const fs = require("fs");
 const path = require("path");
 
@@ -35,11 +32,10 @@ function neoJvmArgs(root, id, log = () => {}) {
     else if (ruleAllows(a.rules)) vals = Array.isArray(a.value) ? a.value : [a.value];
     for (let v of vals) {
       v = String(v).replace(/\$\{(\w+)\}/g, (m, k) => (k in vars ? vars[k] : m));
-      if (/\$\{/.test(v)) continue; // variável que o launcher já trata (classpath, natives...)
+      if (/\$\{/.test(v)) continue;
       out.push(v);
     }
   }
-  // MCLC já adiciona -cp e -Djava.library.path; remove duplicatas desses
   const clean = [];
   for (let i = 0; i < out.length; i++) {
     if (out[i] === "-cp" || out[i] === "-classpath") { i++; continue; }
@@ -50,7 +46,6 @@ function neoJvmArgs(root, id, log = () => {}) {
   return clean;
 }
 
-// Mostra o final do log do jogo no Console quando ele fecha com erro
 function tailLogs(root, log) {
   const now = Date.now();
   const show = (file, n) => {

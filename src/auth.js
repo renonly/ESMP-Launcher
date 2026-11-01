@@ -1,10 +1,8 @@
-// Conta do SMP: usuário + senha, validada pela SUA API (Cloudflare Worker).
-// O launcher nunca guarda a senha, só o token que a API devolve.
 const { app, safeStorage } = require("electron");
 const fs = require("fs");
 const path = require("path");
 const { API_URL: RAW_API_URL } = require("./config");
-const API_URL = RAW_API_URL.replace(/\/+$/, ""); // tira "/" do final
+const API_URL = RAW_API_URL.replace(/\/+$/, "");
 
 const file = () => path.join(app.getPath("userData"), "session.bin");
 
@@ -26,7 +24,7 @@ async function call(route, body) {
   const data = await res.json().catch(() => null);
   if (!data) throw new Error(`A API respondeu algo inesperado (HTTP ${res.status}).`);
   if (!res.ok) throw new Error(data.error || "Erro na autenticação.");
-  return data; // { username, uuid, token }
+  return data;
 }
 
 function save(session) {

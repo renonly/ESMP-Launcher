@@ -1,4 +1,3 @@
-// Status do servidor via "Server List Ping" do Minecraft (sem depender de site externo).
 const net = require("net");
 
 const varint = (n) => {
@@ -23,7 +22,7 @@ const packet = (id, payload) => {
 function readVarint(buf, offset) {
   let val = 0, shift = 0, i = offset, b;
   do {
-    if (i >= buf.length) return null; // ainda faltam bytes
+    if (i >= buf.length) return null;
     b = buf[i++];
     val |= (b & 0x7f) << shift;
     shift += 7;
@@ -31,7 +30,6 @@ function readVarint(buf, offset) {
   return { val, next: i };
 }
 
-// description pode ser string ou objeto de chat ({ text, extra: [...] })
 function flatten(d) {
   if (!d) return "";
   if (typeof d === "string") return d;

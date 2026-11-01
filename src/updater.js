@@ -1,4 +1,3 @@
-// Sincroniza arquivos gerenciados do pack com o manifesto publicado na API.
 const fs = require("fs"), path = require("path"), crypto = require("crypto");
 const { API_URL: RAW_API_URL, MANAGED_DIRS, PRESERVE_DIRS = [] } = require("./config");
 const API_URL = RAW_API_URL.replace(/\/+$/, "");
@@ -7,13 +6,12 @@ const R2_ORIGIN = "https://pub-0aa8b496587a463a803f53f6b16bfdda.r2.dev";
 const PARALLEL = 4, cachePath = d => path.join(d, "manifest.cache.json"), statePath = d => path.join(d, "pack.installed.json");
 const readInstalled = d => { try { return JSON.parse(fs.readFileSync(statePath(d), "utf8")); } catch { return null; } };
 const isPreserved = rel => PRESERVE_DIRS.some(d => rel === d || rel.startsWith(d + "/"));
-// Precisa baixar? Em pastas preservadas, so se o arquivo nao existe ou o servidor mudou depois da ultima instalacao.
 async function needsUpdate(rel, f, abs, prevHashes, force) {
   if (!fs.existsSync(abs)) return true;
   if (isPreserved(rel)) {
     if (force) return true;
     const known = prevHashes[rel];
-    if (known === undefined) return false;   // ja existe e nunca foi rastreado: mantem o seu
+    if (known === undefined) return false;
     return known !== f.sha1 && (await sha1(abs)) !== f.sha1;
   }
   return force || (await sha1(abs)) !== f.sha1;
@@ -35,8 +33,6 @@ async function walk(dir) {
   return out;
 }
 
-// A API atual retorna URLs relativas (/download/... e /files/...).
-// Também aceitamos URLs absolutas do endpoint público R2 para manifestos antigos.
 function resolveFileUrl(rawUrl) {
   if (typeof rawUrl !== "string" || !rawUrl.trim()) throw new Error("URL ausente no manifesto.");
   let parsed;
@@ -110,7 +106,6 @@ async function info(dir) {
     const rel = posix(f.path);
     const abs = path.join(dir, ...rel.split("/"));
     const exists = fs.existsSync(abs);
-    // status: ok (igual ao do servidor), outdated (existe mas mudou), missing (não existe)
     const status = !exists ? "missing" : !(await needsUpdate(rel, f, abs, prevHashes, false)) ? "ok" : "outdated";
     files.push({ path: f.path, size: f.size || 0, installed: status === "ok", status });
   }
@@ -140,7 +135,7 @@ async function sync(dir, onProgress = () => {}, { force = false } = {}) {
   const wanted = new Map(manifest.files.map(f => [posix(f.path), f]));
   const root = path.resolve(dir), todo = [];
   const prevHashes = readInstalled(root)?.hashes || {};
-  const hashes = {};   // o que o servidor tinha dos arquivos preservados na ultima sincronizacao
+  const hashes = {};
   for (const [rel, f] of wanted) {
     const abs = path.resolve(root, ...rel.split("/"));
     if (!abs.startsWith(root + path.sep)) throw new Error("Caminho inválido no manifesto.");
@@ -171,6 +166,5 @@ async function sync(dir, onProgress = () => {}, { force = false } = {}) {
   return manifest;
 }
 
-// "Instalado" = ja sincronizou o pack alguma vez e a pasta mods existe (some depois de desinstalar)
 const isInstalled = d => !!readInstalled(d) && fs.existsSync(path.join(d, "mods"));
 module.exports = { sync, info, isInstalled };
