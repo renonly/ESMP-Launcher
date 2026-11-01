@@ -6,6 +6,7 @@ const { app } = require("electron");
 const cfg = require("./config");
 const updater = require("./updater");
 const { neoJvmArgs, tailLogs } = require("./neoargs");
+const managedJava = require("./java");
 
 const gameDir = () => path.join(app.getPath("userData"), "instance");
 
@@ -117,13 +118,31 @@ function detectJava() {
   return [...found.values()].sort((a, b) => b.major - a.major);
 }
 
-function checkJava(mc, javaPath) {
+// Acha um Java que sirva; se não houver nenhum, baixa o Temurin sozinho.
+// Retorna o caminho do java a ser usado.
+async function ensureJava(mc, javaPath, send, log) {
   const need = requiredJava(mc);
-  const have = javaMajor(javaPath);
-  if (have === null)
-    throw new Error(`Java não encontrado. Instale o Java ${need} (Temurin) ou informe o caminho em Ajustes.`);
-  if (have < need)
-    throw new Error(`Seu Java é o ${have}, mas o Minecraft ${mc} precisa do Java ${need} ou mais novo.`);
+  const ok = (p) => { const m = javaMajor(p); return m !== null && m >= need; };
+
+  // 1. Java escolhido pelo jogador em Ajustes
+  if (javaPath) {
+    if (ok(javaPath)) return javaPath;
+    log(`[java] O Java de Ajustes não serve (precisa do ${need}+). Procurando outro…`);
+  }
+  // 2. Java do sistema (PATH)
+  if (ok("java")) return "java";
+  // 3. Javas instalados em pastas conhecidas (pega o menor que atende)
+  const local = detectJava().filter((j) => j.major >= need).sort((a, b) => a.major - b.major)[0];
+  if (local) return local.path;
+  // 4. Java que o launcher já baixou antes
+  const cached = managedJava.managedPath(need);
+  if (cached && ok(cached)) return cached;
+  // 5. Nada serviu: baixa e instala
+  log(`[java] Java ${need} não encontrado. Baixando automaticamente…`);
+  const installed = await managedJava.install(need, send, log);
+  if (!installed || !ok(installed))
+    throw new Error(`Não consegui instalar o Java ${need} automaticamente. Instale o Java ${need} (Temurin) ou informe o caminho em Ajustes.`);
+  return installed;
 }
 
 async function syncOnly(force, send) {
@@ -145,11 +164,11 @@ async function play(session, s, send) {
     throw new Error(`Este pack usa ${loaderType}, mas o launcher só suporta Fabric, Forge e NeoForge.`);
   const loader = manifest.loader?.version || ({ forge: cfg.FORGE_LOADER, neoforge: cfg.NEOFORGE_LOADER }[loaderType] || cfg.FABRIC_LOADER);
 
-  send("progress", { stage: "Verificando o Java", done: 0, total: 0 });
-  checkJava(mc, s.javaPath);
   const log = (m) => String(m).split(/\r?\n/).filter(Boolean).forEach((l) => send("log", l));
+  send("progress", { stage: "Verificando o Java", done: 0, total: 0 });
+  const java = await ensureJava(mc, s.javaPath, send, log);
   let fabricId = null, forgeInstaller = null;
-  if (loaderType === "neoforge") fabricId = await ensureNeoForge(root, loader, s.javaPath, log);
+  if (loaderType === "neoforge") fabricId = await ensureNeoForge(root, loader, java, log);
   else if (loaderType === "forge") forgeInstaller = await ensureForge(root, mc, loader);
   else fabricId = await ensureFabric(root, mc, loader);
 
@@ -176,7 +195,7 @@ async function play(session, s, send) {
     memory: { max: `${s.ramGb}G`, min: `${Math.max(1, Math.min(2, s.ramGb))}G` },
     server: { host: cfg.SERVER_HOST, port: cfg.SERVER_PORT },
   };
-  if (s.javaPath) opts.javaPath = s.javaPath;
+  if (java !== "java") opts.javaPath = java;
   opts.detached = false;
   const neoArgs = loaderType === "neoforge" ? neoJvmArgs(root, fabricId, log) : [];
   const extra = [...neoArgs, ...(PRESETS[s.jvmPreset] || []), ...s.jvmArgs.split(/\s+/).filter(Boolean)];
